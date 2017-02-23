@@ -171,10 +171,6 @@ public class Bootstrap {
                 .scan();
             
             for (Entry<Class<?>, Method> entry : routes.entries()) {
-                
-                System.out.println(entry.getKey() + " -> " + entry.getValue());
-                
-                
                 BasicAuthentication basicAuthentication = entry.getKey().getAnnotation(BasicAuthentication.class);
                 if (basicAuthentication == null) {
                     basicAuthentication = entry.getValue().getAnnotation(BasicAuthentication.class);

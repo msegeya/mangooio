@@ -12,7 +12,7 @@ import io.mangoo.routing.Response;
 
 public class BasicAuthenticationController {
     
-    @BasicAuthentication(username = "credentials.username", password = "credentials.password")
+    @BasicAuthentication(username = "credentials.username", password = "credentials.password") //NOSONAR
     @Routing(method = "GET", url = "/basicauth")
     public Response basicauth() {
         return Response.withOk().andTextBody("authenticated");
