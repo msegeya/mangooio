@@ -50,4 +50,9 @@ public class Lifecycle implements MangooLifecycle {
     public void applicationStopped() {
         //do nothing for now
     }
+
+    @Override
+    public void routing() {
+      //do nothing for now
+    }
 }

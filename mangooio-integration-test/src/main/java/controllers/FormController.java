@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.io.Files;
 
+import io.mangoo.annotations.Routing;
 import io.mangoo.routing.Response;
 import io.mangoo.routing.bindings.Form;
     
@@ -20,10 +21,12 @@ public class FormController {
     private static final int MIN_SIZE = 11;
     private static final int MAX_SIZE = 12;
 
+    @Routing(method = "POST", url = "/form")
     public Response form() {
         return Response.withOk();
     }
     
+    @Routing(method = "POST", url = "/singlefile")
     public Response singlefile(Form form) {
         String content = "";
         Optional<File> formFile = form.getFile();
@@ -40,6 +43,7 @@ public class FormController {
     }
     
     @SuppressWarnings("all")
+    @Routing(method = "POST", url = "/multifile")
     public Response multifile(Form form) {
         String content = "";
         List<File> files = form.getFiles();
@@ -54,6 +58,7 @@ public class FormController {
         return Response.withOk().andTextBody(content + files.size());
     }
 
+    @Routing(method = "POST", url = "/validateform")
     public Response validateform(Form form) {
         form.expectValue("name");
         form.expectEmail("email");
@@ -72,10 +77,12 @@ public class FormController {
         return Response.withOk();
     }
     
+    @Routing(method = "GET", url = "/flashify")
     public Response flashify() {
         return Response.withOk();
     }
     
+    @Routing(method = "POST", url = "/submit")
     public Response submit(Form form) {
         form.keep();
         

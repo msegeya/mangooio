@@ -542,7 +542,7 @@ public class Config {
      * @return application.controller from application.yaml or default value if undefined
      */
     public String getControllerPackage() {
-        return getString(Key.APPLICATION_CONTROLLER, Default.APPLICATION_CONTROLLER.toString());
+        return getString(Key.APPLICATION_CONTROLLERS, Default.APPLICATION_CONTROLLER.toString());
     }
 
     /**
@@ -748,5 +748,12 @@ public class Config {
      */
     public String getRefererPolicy() {
         return getString(Key.APPLICATION_HEADERS_REFERERPOLICY, Default.APPLICATION_HEADERS_REFERERPOLICY.toString());
+    }
+
+    /**
+     * @return application.controllers or default value if undefined
+     */
+    public String getApplicationControllers() {
+        return getString(Key.APPLICATION_CONTROLLERS, Default.APPLICATION_CONTROLLER.toString());
     }
 }

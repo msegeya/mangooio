@@ -1,6 +1,5 @@
 package io.mangoo.core;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -9,8 +8,10 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -21,9 +22,8 @@ import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.common.io.Resources;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -32,10 +32,10 @@ import com.google.inject.Stage;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.mangoo.admin.AdminController;
+import io.mangoo.annotations.BasicAuthentication;
+import io.mangoo.annotations.Routing;
 import io.mangoo.annotations.Schedule;
 import io.mangoo.configuration.Config;
-import io.mangoo.core.yaml.YamlRoute;
-import io.mangoo.core.yaml.YamlRouter;
 import io.mangoo.enums.Default;
 import io.mangoo.enums.Key;
 import io.mangoo.enums.Mode;
@@ -161,49 +161,51 @@ public class Bootstrap {
         }
     }
 
-    @SuppressWarnings("all")
     public void parseRoutes() {
         if (!bootstrapError()) {
-            ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-            YamlRouter yamlRouter = null;
-            try {
-                yamlRouter = objectMapper.readValue(Resources.getResource(Default.ROUTES_FILE.toString()).openStream(), YamlRouter.class);
-            } catch (IOException e) {
-                LOG.error("Failed to load routes.yaml Please make sure that your routes.yaml exists in your application src/main/resources folder", e);
-                this.error = true;
-            }
+            this.injector.getInstance(MangooLifecycle.class).routing();
             
-            if (!bootstrapError() && yamlRouter != null) {
-                for (final YamlRoute yamlRoute : yamlRouter.getRoutes()) {
-                    final Route route = new Route(BootstrapUtils.getRouteType(yamlRoute.getMethod()))
-                            .toUrl(yamlRoute.getUrl().trim())
-                            .withRequest(HttpString.tryFromString(yamlRoute.getMethod()))
-                            .withUsername(yamlRoute.getUsername())
-                            .withPassword(yamlRoute.getPassword())
-                            .withAuthentication(yamlRoute.isAuthentication())
-                            .withTimer(yamlRoute.isTimer())
-                            .withLimit(yamlRoute.getLimit())
-                            .allowBlocking(yamlRoute.isBlocking());
-                    
-                    String mapping = yamlRoute.getMapping();   
-                    try {
-                       String [] mapped = null;
-                       if (StringUtils.isNotBlank(mapping)) {
-                           mapped = mapping.split("\\.");
-                           route.withClass(Class.forName(BootstrapUtils.getPackageName(this.config.getControllerPackage()) + mapped[0].trim()));
-                           if (mapped.length == 2) {
-                               if (methodExists(mapped[1], route.getControllerClass())) {
-                                   route.withMethod(mapped[1]);
-                               }  
-                           }
-                       }
+            ListMultimap<Class<?>, Method> routes = ArrayListMultimap.create();
+            new FastClasspathScanner(this.config.getApplicationControllers().replace(".", ""))
+                .matchClassesWithMethodAnnotation(Routing.class, routes::put)
+                .scan();
+            
+            for (Entry<Class<?>, Method> entry : routes.entries()) {
+                
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+                
+                
+                BasicAuthentication basicAuthentication = entry.getKey().getAnnotation(BasicAuthentication.class);
+                if (basicAuthentication == null) {
+                    basicAuthentication = entry.getValue().getAnnotation(BasicAuthentication.class);
+                }
 
-                       Router.addRoute(route);
-                    } catch (final Exception e) {
-                        LOG.error("Failed to create routes from routes.yaml");
-                        LOG.error("Please verify that your routes.yaml mapping is correct", e);
-                        this.error = true;
+                String username = null;
+                String password = null;
+                if (basicAuthentication != null) {
+                    username = this.config.getString(basicAuthentication.username());
+                    password = this.config.getString(basicAuthentication.password());
+                }
+                
+                Routing routing = entry.getValue().getAnnotation(Routing.class);
+                List<String> methods = Arrays.asList(routing.method());
+                List<String> urls = Arrays.asList(routing.url());
+                
+                if (methods.size() == urls.size()) {
+                    for (int i=0; i < methods.size(); i++) {
+                        addRoute(entry, username, password, routing, urls.get(i).trim(), methods.get(i));
                     }
+                } else if (urls.size() > 1 && methods.size() == 1) {
+                    for (String url : urls) {
+                        addRoute(entry, username, password, routing, url, methods.get(0));
+                    }  
+                } else if (methods.size() > 1 && urls.size() == 1) {
+                    for (String method : methods) {
+                        addRoute(entry, username, password, routing, urls.get(0).trim(), method); 
+                    } 
+                } else {
+                    LOG.error("Invalid assignment of methods and urls found in class '" + entry.getKey().getName() +"' with method '" + entry.getValue().getName() + "'");
+                    this.error = true;
                 }
             }
             
@@ -213,21 +215,19 @@ public class Bootstrap {
         }
     }
 
-    private boolean methodExists(String controllerMethod, Class<?> controllerClass) {
-        boolean exists = false;
-        for (final Method method : controllerClass.getMethods()) {
-            if (method.getName().equals(controllerMethod)) {
-                exists = true;
-                break;
-            }
-        }
-
-        if (!exists) {
-            LOG.error("Could not find controller method '" + controllerMethod + "' in controller class '" + controllerClass.getSimpleName() + "'");
-            this.error = true;
-        }
-
-        return exists;
+    private void addRoute(Entry<Class<?>, Method> entry, String username, String password, Routing routing, String url, String method) {
+        final Route route = new Route(BootstrapUtils.getRouteType(method))
+                .toUrl(url.trim())
+                .withClass(entry.getKey())
+                .withMethod(entry.getValue().getName())
+                .withRequest(HttpString.tryFromString(method))
+                .withTimer(routing.timer())
+                .withUsername(username)
+                .withPassword(password)
+                .withLimit(routing.limit())
+                .allowBlocking(routing.blocking());
+        
+        Router.addRoute(route);
     }
 
     private void createRoutes() {

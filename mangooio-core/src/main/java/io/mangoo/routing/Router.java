@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.common.base.Preconditions;
 
 import io.mangoo.enums.Required;
+import io.mangoo.enums.RouteType;
+import io.mangoo.interfaces.MangooWebSocket;
 
 /**
  *
@@ -38,5 +40,54 @@ public final class Router {
      */
     public static Set<Route> getRoutes() {
         return Collections.unmodifiableSet(routes);
+    }
+
+    /**
+     * Adds a new Server Sent Event route to the router
+     * 
+     * @param url The URL of the route
+     * @param requireAuthentucation True if login is required to access route, false otherwise
+     */
+    public static void addServerSentEventRoute(String url, boolean requireAuthentucation) {
+        Objects.requireNonNull(url, Required.URL.toString());
+        
+        Route route = new Route(RouteType.SERVER_SENT_EVENT).toUrl(url).withAuthentication(requireAuthentucation);
+        Router.addRoute(route);
+    }
+
+    /**
+     * Adds a new WebSocket route to the router
+     * @param url The URL of the route
+     * @param controllerClass The controller class
+     * @param requireAuthentucation True if login is required to access route, false otherwise
+     */
+    public static void addWebSocketRoute(String url, Class<? extends MangooWebSocket> controllerClass, boolean requireAuthentucation) {
+        Objects.requireNonNull(url, Required.URL.toString());
+        Objects.requireNonNull(controllerClass, Required.CONTROLLER_CLASS.toString());
+        
+        Route route = new Route(RouteType.WEBSOCKET).toUrl(url).withClass(controllerClass).withAuthentication(requireAuthentucation);
+        Router.addRoute(route);
+    }
+
+    /**
+     * Adds a new File route to the router
+     * @param url The URL of the route
+     */
+    public static void addFileRoute(String url) {
+        Objects.requireNonNull(url, Required.URL.toString());
+        
+        Route route = new Route(RouteType.RESOURCE_FILE).toUrl(url);
+        Router.addRoute(route);
+    }
+
+    /**
+     * Adds a new Path route to the router
+     * @param url The URL of the route
+     */
+    public static void addPathRoute(String url) {
+        Objects.requireNonNull(url, Required.URL.toString());
+        
+        Route route = new Route(RouteType.RESOURCE_PATH).toUrl(url);
+        Router.addRoute(route);
     }
 }

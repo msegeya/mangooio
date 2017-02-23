@@ -11,7 +11,7 @@ public enum Key {
     APPLICATION_ADMIN_PASSWORD("application.admin.password"),
     APPLICATION_ADMIN_USERNAME("application.admin.username"),
     APPLICATION_CONFIG("application.config"),
-    APPLICATION_CONTROLLER("application.controller"),
+    APPLICATION_CONTROLLERS("application.controllers"),
     APPLICATION_HEADERS_CONTENTSECURITYPOLICY("application.headers.contentsecuritypolicy"),
     APPLICATION_HEADERS_REFERERPOLICY("application.headers.refererpolicy"),
     APPLICATION_HEADERS_SERVER("application.headers.server"),

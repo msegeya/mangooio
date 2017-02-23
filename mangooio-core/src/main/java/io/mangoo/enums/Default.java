@@ -56,7 +56,6 @@ public enum Default {
     MODULE_CLASS("conf.Module"),
     NUMBER_FORMAT("0.######"),
     OAUTH_REQUEST_PARAMETER("oauth"),
-    ROUTES_FILE("routes.yaml"),
     SCHEDULER_AUTOSTART("true"),
     SCHEDULER_JOB_GROUP("MangooSchedulerJobGroup"),
     SCHEDULER_PACKAGE("jobs"),

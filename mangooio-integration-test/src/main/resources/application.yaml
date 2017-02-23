@@ -24,6 +24,9 @@ default:
         preprocess:
             js        : true
             css       : true
+    credentials:
+        username: foo
+        password: $2a$12$Po56ZgZQgDEoK6nws6gaAuZriIwcFT1thEHq.N2T9wLdUnhmlLKxG        
     connector:
         http:
             host      : localhost

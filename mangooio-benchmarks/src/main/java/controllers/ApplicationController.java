@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.inject.Inject;
 
 import interfaces.Constants;
+import io.mangoo.annotations.Routing;
 import io.mangoo.routing.Response;
 import models.Fortune;
 import models.Message;
@@ -29,11 +30,13 @@ public class ApplicationController {
         this.dataService = dataService;
     }
 
+    @Routing(method = "GET", url = "/json")
     public Response json() {
         return Response.withOk()
                 .andJsonBody(message);
     }
 
+    @Routing(method = "GET", url = "/db")
     public Response db() {
         final World world = dataService.findById(RandomUtils.getRandomId());
         
@@ -41,12 +44,14 @@ public class ApplicationController {
                 .andJsonBody(world);
     }
 
+    @Routing(method = "GET", url = "/queries")
     public Response queries() {
         final List<World> worlds = dataService.findWorlds(RandomUtils.getRandomWorlds());
         return Response.withOk()
                 .andJsonBody(worlds);
     }
     
+    @Routing(method = "GET", url = "/fortunes")
     public Response fortunes() {
         final List<Fortune> fortunes = dataService.findAllFortunes();
         fortunes.add(fortune);
@@ -56,6 +61,7 @@ public class ApplicationController {
                 .andContent("fortunes", fortunes);
     }
 
+    @Routing(method = "GET", url = "/updates")
     public Response updates() {
         List<World> worlds = dataService.findWorlds(RandomUtils.getRandomWorlds());
         for (World world : worlds) {
@@ -70,6 +76,7 @@ public class ApplicationController {
                 .andJsonBody(output);
     }
     
+    @Routing(method = "GET", url = "/plaintext")
     public Response plaintext() {
         return Response.withOk()
                 .andTextBody(Constants.HELLO_WORLD);
