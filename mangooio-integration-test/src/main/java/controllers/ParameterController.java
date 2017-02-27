@@ -14,6 +14,7 @@ public class ParameterController {
 
     @Routing(method = "GET", url = "/string/{foo}")
     public Response stringParam(String foo) {
+        if (foo == null) {foo = "isNull";}
         return Response.withOk().andTemplate(PARAM_TEMPLATE).andContent(FOO, foo);
     }
     
