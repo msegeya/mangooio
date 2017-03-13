@@ -145,7 +145,7 @@ public class RequestHandler implements HttpHandler {
                     this.attachment.getSubject(),
                     getTemplatePath(invokedResponse),
                     invokedResponse.getContent(),
-                    exchange.getRelativePath(),
+                    this.attachment.getControllerAndMethod(),
                     this.attachment.getLocale()));
         }
 
@@ -207,25 +207,25 @@ public class RequestHandler implements HttpHandler {
                 convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? null : this.attachment.getRequestParameter().get(key);
                 break;
             case INT_PRIMITIVE:
-                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Integer.valueOf(this.attachment.getRequestParameter().get(key));
+                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Integer.parseInt(this.attachment.getRequestParameter().get(key));
                 break;               
             case INTEGER:
                 convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? null : Integer.valueOf(this.attachment.getRequestParameter().get(key));
                 break;
             case DOUBLE_PRIMITIVE:
-                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Double.valueOf(this.attachment.getRequestParameter().get(key));
+                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Double.parseDouble(this.attachment.getRequestParameter().get(key));
                 break;
             case DOUBLE:
                 convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? null : Double.valueOf(this.attachment.getRequestParameter().get(key));
                 break;
             case FLOAT_PRIMITIVE:
-                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Float.valueOf(this.attachment.getRequestParameter().get(key));
+                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Float.parseFloat(this.attachment.getRequestParameter().get(key));
                 break;                
             case FLOAT:
                 convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? null : Float.valueOf(this.attachment.getRequestParameter().get(key));
                 break;
             case LONG_PRIMITIVE:
-                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Long.valueOf(this.attachment.getRequestParameter().get(key));
+                convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? 0 : Long.parseLong(this.attachment.getRequestParameter().get(key));
                 break;
             case LONG:
                 convertedParameters[index] = StringUtils.isBlank(this.attachment.getRequestParameter().get(key)) ? null : Long.valueOf(this.attachment.getRequestParameter().get(key));
