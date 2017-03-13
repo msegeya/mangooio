@@ -26,11 +26,12 @@ public class FormController {
         return Response.withOk();
     }
     
-    @Routing(method = "POST", url = "/singlefile")
+    @Routing(method = "POST", url = "/multivalued")
     public Response multivalued(Form form) {
         return Response.withOk().andContent("values", form.getValueList("foo"));
     }
     
+    @Routing(method = "POST", url = "/singlefile")
     public Response singlefile(Form form) {
         String content = "";
         Optional<File> formFile = form.getFile();

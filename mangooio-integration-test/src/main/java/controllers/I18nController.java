@@ -23,10 +23,12 @@ public class I18nController {
         return Response.withOk().andCookie(cookie);
     }
     
+    @Routing(method = "GET", url = "/special")
     public Response special() {
         return Response.withOk();
     }
     
+    @Routing(method = "GET", url = "/umlaute")
     public Response umlaute() {
         return Response.withOk();
     }
