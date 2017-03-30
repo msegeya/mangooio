@@ -1,6 +1,7 @@
 package io.mangoo.routing;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,7 @@ import io.mangoo.interfaces.MangooWebSocket;
  */
 public final class Router {
     private static Set<Route> routes = ConcurrentHashMap.newKeySet();
+    private static Map<String, Route> reverseRoutes = new ConcurrentHashMap<>();
     private static final int MAX_ROUTES = 100000;
 
     private Router(){
@@ -31,8 +33,11 @@ public final class Router {
     public static void addRoute(Route route) {
         Objects.requireNonNull(route, Required.ROUTE.toString());
         Preconditions.checkArgument(routes.size() <= MAX_ROUTES, "Maximum of " + MAX_ROUTES + " routes reached");
-        
+
         routes.add(route);
+        if (route.getRouteType() == RouteType.REQUEST) {
+            reverseRoutes.put(route.getControllerClass().getSimpleName() + ":" + route.getControllerMethod(), route);
+        }
     }
 
     /**
@@ -44,13 +49,13 @@ public final class Router {
 
     /**
      * Adds a new Server Sent Event route to the router
-     * 
+     *
      * @param url The URL of the route
      * @param requireAuthentucation True if login is required to access route, false otherwise
      */
     public static void addServerSentEventRoute(String url, boolean requireAuthentucation) {
         Objects.requireNonNull(url, Required.URL.toString());
-        
+
         Route route = new Route(RouteType.SERVER_SENT_EVENT).toUrl(url).withAuthentication(requireAuthentucation);
         Router.addRoute(route);
     }
@@ -64,7 +69,7 @@ public final class Router {
     public static void addWebSocketRoute(String url, Class<? extends MangooWebSocket> controllerClass, boolean requireAuthentucation) {
         Objects.requireNonNull(url, Required.URL.toString());
         Objects.requireNonNull(controllerClass, Required.CONTROLLER_CLASS.toString());
-        
+
         Route route = new Route(RouteType.WEBSOCKET).toUrl(url).withClass(controllerClass).withAuthentication(requireAuthentucation);
         Router.addRoute(route);
     }
@@ -75,7 +80,7 @@ public final class Router {
      */
     public static void addFileRoute(String url) {
         Objects.requireNonNull(url, Required.URL.toString());
-        
+
         Route route = new Route(RouteType.RESOURCE_FILE).toUrl(url);
         Router.addRoute(route);
     }
@@ -86,8 +91,17 @@ public final class Router {
      */
     public static void addPathRoute(String url) {
         Objects.requireNonNull(url, Required.URL.toString());
-        
+
         Route route = new Route(RouteType.RESOURCE_PATH).toUrl(url);
         Router.addRoute(route);
+    }
+    /**
+     * Retrieves a reverse route by its key
+     *
+     * @param key The passed route information (e.g. /foo/{bar})
+     * @return A route object based on the given controller and method or null if none found
+     */
+    public static Route getReverseRoute(String key) {
+        return reverseRoutes.get(key);
     }
 }

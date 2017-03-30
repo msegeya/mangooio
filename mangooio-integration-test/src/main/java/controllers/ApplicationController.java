@@ -12,9 +12,13 @@ import io.mangoo.routing.bindings.Request;
 import io.undertow.util.HttpString;
 
 public class ApplicationController {
-    
+
     @Routing(method = "GET", url = "/", blocking = true, timer = true)
     public Response index() {
+        return Response.withOk();
+    }
+
+    public Response route() {
         return Response.withOk();
     }
 
@@ -23,14 +27,23 @@ public class ApplicationController {
         return Response.withRedirect("/");
     }
 
+    public Response restricted() {
+        return Response.withOk().andContent("form", "foo");
+    }
+
     @Routing(method = "GET", url = "/text")
     public Response text() {
         return Response.withOk().andTextBody("foo");
     }
-    
+
     @Routing(method = "GET", url = "/limit", limit = 10)
     public Response limit() {
         return Response.withOk().andEmptyBody();
+    }
+
+
+    public Response reverse() {
+        return Response.withOk();
     }
     
     @Routing(method = "GET", url = "/prettytime")
@@ -38,7 +51,7 @@ public class ApplicationController {
         LocalDateTime localDateTime = LocalDateTime.now();
         LocalDate localDate = LocalDate.now();
         Date date = new Date();
-        
+
         return Response.withOk()
                 .andContent("localDateTime", localDateTime)
                 .andContent("localDate", localDate)
@@ -70,7 +83,7 @@ public class ApplicationController {
     public Response binary() {
         final URL url = this.getClass().getResource("/attachment.txt");
         final File file = new File(url.getFile());
-        
+
         return Response.withOk().andBinaryFile(file);
     }
 
@@ -108,7 +121,7 @@ public class ApplicationController {
     public Response jsonBoonPut(Request request) {
         return Response.withOk().andTextBody(request.getBodyAsJsonMap().toString());
     }
-    
+
     @Routing(method = "GET", url = {"/location", "/location/{myloca}"})
     public Response location(String myloc) {
         return Response.withOk().andContent("myloc", myloc);
